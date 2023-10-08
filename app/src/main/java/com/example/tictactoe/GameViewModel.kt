@@ -36,7 +36,14 @@ class GameViewModel : ViewModel() {
 
     private fun computerMove(){
         if (state.currentTurn == BoardCellValue.CROSS){
-            if (canWin()) { return }
+            if (canWin()) {
+                state = state.copy(
+                    hintText = "Player 'X' Won",
+                    playerCrossCount = state.playerCrossCount + 1,
+                    currentTurn = BoardCellValue.NONE,
+                    hasWon = true
+                )
+                return }
             if (canBlock()) { return }
             if (middleFree()) {
                 addValueToBoard(5)
@@ -158,42 +165,34 @@ class GameViewModel : ViewModel() {
                 state = state.copy(victoryType = VictoryType.HORIZONTAL1)
                 return true
             }
-
             boardItems[4] == boardValue && boardItems[5] == boardValue && boardItems[6] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.HORIZONTAL2)
                 return true
             }
-
             boardItems[7] == boardValue && boardItems[8] == boardValue && boardItems[9] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.HORIZONTAL3)
                 return true
             }
-
             boardItems[1] == boardValue && boardItems[4] == boardValue && boardItems[7] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.VERTICAL1)
                 return true
             }
-
             boardItems[2] == boardValue && boardItems[5] == boardValue && boardItems[8] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.VERTICAL2)
                 return true
             }
-
             boardItems[3] == boardValue && boardItems[6] == boardValue && boardItems[9] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.VERTICAL3)
                 return true
             }
-
             boardItems[1] == boardValue && boardItems[5] == boardValue && boardItems[9] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.DIAGONAL1)
                 return true
             }
-
             boardItems[3] == boardValue && boardItems[5] == boardValue && boardItems[7] == boardValue -> {
                 state = state.copy(victoryType = VictoryType.DIAGONAL2)
                 return true
             }
-
             else -> return false
         }
     }
