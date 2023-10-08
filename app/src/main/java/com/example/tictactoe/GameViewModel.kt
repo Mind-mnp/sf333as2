@@ -8,6 +8,7 @@ import kotlin.random.Random
 
 class GameViewModel : ViewModel() {
     var state by mutableStateOf(GameState())
+    private var nextStartingPlayer = BoardCellValue.CIRCLE
 
     val boardItems: MutableMap<Int, BoardCellValue> = mutableMapOf(
         1 to BoardCellValue.NONE,
@@ -35,57 +36,44 @@ class GameViewModel : ViewModel() {
 
     private fun computerMove(){
         if (state.currentTurn == BoardCellValue.CROSS){
-            if (canWin()){
-
-            }
-            else if (canBlock()){
-            }else if (middleFree()){
+            if (canWin()) { return }
+            if (canBlock()) { return }
+            if (middleFree()) {
                 addValueToBoard(5)
-            }else{
-                val emptyCell = mutableListOf<Int>()
-
-                boardItems.forEach { (key, value) ->
-                    if (value == BoardCellValue.NONE) {
-                        emptyCell.add(key)
-                    }
-                }
-                val randomValue = emptyCell.random()
+                return
+            }
+            val emptyCells = boardItems.filter { it.value == BoardCellValue.NONE }.keys
+            if (emptyCells.isNotEmpty()) {
+                addValueToBoard(emptyCells.random())
             }
         }
 
     }
 
     private fun canWin(): Boolean {
-//        boardItems.forEach { (i, _) ->
-//            if (boardItems[i] == BoardCellValue.NONE){
-//                boardItems[i] = BoardCellValue.CROSS
-//                if (checkForVictory(BoardCellValue.CROSS)){
-//                    addValueToBoard(i)
-//                    return true
-//                }
-//                else{boardItems[i] = BoardCellValue.NONE}
-//
-//            }
-//
-//        }
-
-        return false
+        return findVictoryMove(BoardCellValue.CROSS)
     }
 
     private fun canBlock(): Boolean {
-//        boardItems.forEach { (i, _) ->
-//            if (boardItems[i] == BoardCellValue.NONE){
-//                boardItems[i] = BoardCellValue.CIRCLE
-//                if (checkForVictory(BoardCellValue.CIRCLE)){
-//                    addValueToBoard(i)
-//                    return true
-//                }
-//                else{boardItems[i] = BoardCellValue.NONE}
-//
-//            }
-//
-//        }
+        return findVictoryMove(BoardCellValue.CIRCLE)
+    }
 
+    private fun findVictoryMove(player: BoardCellValue): Boolean {
+        for (i in 1..9) {
+            if (boardItems[i] == BoardCellValue.NONE) {
+                boardItems[i] = player
+                if (checkForVictory(player)) {
+                    boardItems[i] = BoardCellValue.CROSS
+                    state = state.copy(
+                        hintText = if (player == BoardCellValue.CIRCLE) "Player 'X' Blocked" else "Player 'X' is one step from victory",
+                        currentTurn = BoardCellValue.CIRCLE
+                    )
+                    return true
+                } else {
+                    boardItems[i] = BoardCellValue.NONE
+                }
+            }
+        }
         return false
     }
 
@@ -97,16 +85,19 @@ class GameViewModel : ViewModel() {
     }
 
     private fun gameReset() {
-        boardItems.forEach { (i, _) ->
-            boardItems[i] = BoardCellValue.NONE
-        }
-        //ตั้งstateมาreset UI
+        boardItems.forEach { (i, _) -> boardItems[i] = BoardCellValue.NONE }
+        nextStartingPlayer = if (nextStartingPlayer == BoardCellValue.CIRCLE) BoardCellValue.CROSS else BoardCellValue.CIRCLE
+
         state = state.copy(
-            hintText = "Player '0' turn",
-            currentTurn = BoardCellValue.CIRCLE,
+            hintText = "Player '${if (nextStartingPlayer == BoardCellValue.CIRCLE) "O" else "X"}' turn",
+            currentTurn = nextStartingPlayer,
             victoryType = VictoryType.NONE,
             hasWon = false
         )
+
+        if (state.currentTurn == BoardCellValue.CROSS) {
+            computerMove()
+        }
     }
 
     private fun addValueToBoard(cellNo: Int) {
@@ -115,49 +106,50 @@ class GameViewModel : ViewModel() {
         }
         if (state.currentTurn == BoardCellValue.CIRCLE) {
             boardItems[cellNo] = BoardCellValue.CIRCLE
-            //จะมีการเช็คเงื่อไขทุกครั้งที่กด -> cossก็เหมือนกัน
-            state = if (checkForVictory(BoardCellValue.CIRCLE)) {
-                state.copy(
-                    //สถานะการเมื่อชนะ
+            if (checkForVictory(BoardCellValue.CIRCLE)) {
+                state = state.copy(
                     hintText = "Player 'O' Won",
                     playerCircleCount = state.playerCircleCount + 1,
                     currentTurn = BoardCellValue.NONE,
                     hasWon = true
                 )
-            } else (if (hasBoardFull()) {
-                state.copy(
+            } else if (hasBoardFull()) {
+                state = state.copy(
                     hintText = "Game Draw",
-                    drawCount = state.drawCount + 1
+                    drawCount = state.drawCount + 1,
+                    currentTurn = BoardCellValue.NONE
                 )
             } else {
-                state.copy(
+                state = state.copy(
                     hintText = "Player 'X' turn",
                     currentTurn = BoardCellValue.CROSS
                 )
                 computerMove()
-            }) as GameState
+            }
         } else if (state.currentTurn == BoardCellValue.CROSS) {
             boardItems[cellNo] = BoardCellValue.CROSS
-            state = if (checkForVictory(BoardCellValue.CROSS)) {
-                state.copy(
+            if (checkForVictory(BoardCellValue.CROSS)) {
+                state = state.copy(
                     hintText = "Player 'X' Won",
                     playerCrossCount = state.playerCrossCount + 1,
                     currentTurn = BoardCellValue.NONE,
                     hasWon = true
                 )
             } else if (hasBoardFull()) {
-                state.copy(
+                state = state.copy(
                     hintText = "Game Draw",
-                    drawCount = state.drawCount + 1
+                    drawCount = state.drawCount + 1,
+                    currentTurn = BoardCellValue.NONE
                 )
             } else {
-                state.copy(
+                state = state.copy(
                     hintText = "Player 'O' turn",
                     currentTurn = BoardCellValue.CIRCLE
                 )
             }
         }
     }
+
 
     private fun checkForVictory(boardValue: BoardCellValue): Boolean {
         when {
