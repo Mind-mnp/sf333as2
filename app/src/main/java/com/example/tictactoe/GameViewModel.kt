@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import kotlin.random.Random
 
 class GameViewModel : ViewModel() {
     var state by mutableStateOf(GameState())
@@ -34,30 +35,62 @@ class GameViewModel : ViewModel() {
 
     private fun computerMove(){
         if (state.currentTurn == BoardCellValue.CROSS){
-            addValueToBoard(5)
-        }
-//            if (canWin()){
-//
-//            }
-//            else if (canBlock()){
-//            }else if (middleFree()){
-//            }else{}
-//        }
+            if (canWin()){
 
+            }
+            else if (canBlock()){
+            }else if (middleFree()){
+                addValueToBoard(5)
+            }else{
+                val emptyCell = mutableListOf<Int>()
+
+                boardItems.forEach { (key, value) ->
+                    if (value == BoardCellValue.NONE) {
+                        emptyCell.add(key)
+                    }
+                }
+                val randomValue = emptyCell.random()
+            }
+        }
 
     }
 
     private fun canWin(): Boolean {
+//        boardItems.forEach { (i, _) ->
+//            if (boardItems[i] == BoardCellValue.NONE){
+//                boardItems[i] = BoardCellValue.CROSS
+//                if (checkForVictory(BoardCellValue.CROSS)){
+//                    addValueToBoard(i)
+//                    return true
+//                }
+//                else{boardItems[i] = BoardCellValue.NONE}
+//
+//            }
+//
+//        }
+
         return false
     }
 
     private fun canBlock(): Boolean {
+//        boardItems.forEach { (i, _) ->
+//            if (boardItems[i] == BoardCellValue.NONE){
+//                boardItems[i] = BoardCellValue.CIRCLE
+//                if (checkForVictory(BoardCellValue.CIRCLE)){
+//                    addValueToBoard(i)
+//                    return true
+//                }
+//                else{boardItems[i] = BoardCellValue.NONE}
+//
+//            }
+//
+//        }
+
         return false
     }
 
     private fun middleFree(): Boolean {
-        if (boardItems[5] != BoardCellValue.NONE){
-            boardItems[5] = BoardCellValue.CROSS
+        if (boardItems[5] == BoardCellValue.NONE){
             return true
         }
         return false
@@ -99,10 +132,9 @@ class GameViewModel : ViewModel() {
             } else {
                 state.copy(
                     hintText = "Player 'X' turn",
-                    currentTurn = BoardCellValue.CROSS,
-                    )
-//                computerMove()
-
+                    currentTurn = BoardCellValue.CROSS
+                )
+                computerMove()
             }) as GameState
         } else if (state.currentTurn == BoardCellValue.CROSS) {
             boardItems[cellNo] = BoardCellValue.CROSS
