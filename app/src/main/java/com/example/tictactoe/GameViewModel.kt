@@ -134,7 +134,7 @@ class GameViewModel : ViewModel() {
                     hintText = "Player 'X' turn",
                     currentTurn = BoardCellValue.CROSS
                 )
-                computerMove()
+//                computerMove()
             }) as GameState
         } else if (state.currentTurn == BoardCellValue.CROSS) {
             boardItems[cellNo] = BoardCellValue.CROSS
